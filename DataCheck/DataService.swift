@@ -365,7 +365,7 @@ class DataService: ObservableObject {
                 "onlyCharged": AnyCodable(false),
                 "subscriptionGroup": AnyCodable(subscriptionGroup),
                 "invoice": AnyCodable(nil as String?),
-                "types": AnyCodable([] as [Int])
+                "types": AnyCodable([1, 2, 3, 5, 6, 7] as [Int])
             ]
             
             let graphQLRequest = CdrGraphQLRequest(operationName: "cdrData", variables: variables, query: cdrQuery)

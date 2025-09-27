@@ -327,7 +327,7 @@ struct CdrData: Codable {
     let cdrData: [CdrRecord]
 }
 
-struct CdrRecord: Codable, Identifiable {
+struct CdrRecord: Codable, Identifiable, Equatable {
     var id: String { startDate }
     let startDate: String
     let cdrType: String

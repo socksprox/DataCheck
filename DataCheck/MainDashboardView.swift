@@ -13,6 +13,7 @@ struct MainDashboardView: View {
     @ObservedObject var dataService: DataService
     @State private var isDataDetailPresented = false
     @State private var isAdjustUsagePresented = false
+    @State private var isDataPredictionPopupPresented = false
     @State private var copied = false
     
     var body: some View {
@@ -31,7 +32,7 @@ struct MainDashboardView: View {
                         // Usage Cards
                         if let subscriptionGroup = customer.subscriptionGroups.first,
                            let msisdn = subscriptionGroup.msisdns.first {
-                            usageCardsView(balance: msisdn.balance, dataAssigned: msisdn.balance.dataAssigned)
+                            usageCardsView(balance: msisdn.balance, dataAssigned: msisdn.balance.dataAssigned, daysRemaining: subscriptionGroup.remainingBeforeBill)
                                 .onAppear {
                                     // Store data for widget
                                     storeDataForWidget(balance: msisdn.balance, dataAssigned: msisdn.balance.dataAssigned, daysRemaining: subscriptionGroup.remainingBeforeBill)
@@ -70,6 +71,24 @@ struct MainDashboardView: View {
                     dataService: dataService,
                     isPresented: $isAdjustUsagePresented
                 )
+            }
+            .sheet(isPresented: $isDataPredictionPopupPresented) {
+                if let customer = dataService.customerData,
+                   let subscriptionGroup = customer.subscriptionGroups.first,
+                   let msisdn = subscriptionGroup.msisdns.first {
+                    DataUsagePredictionPopup(
+                        dataUsed: msisdn.balance.dataAssigned - msisdn.balance.dataAvailable,
+                        dataTotal: msisdn.balance.dataAssigned,
+                        daysRemaining: subscriptionGroup.remainingBeforeBill,
+                        totalDaysInPeriod: 30, // Assuming 30-day billing cycle
+                        subscriptionGroupId: subscriptionGroup.id,
+                        isPresented: $isDataPredictionPopupPresented
+                    )
+                    .environmentObject(dataService)
+                    .environmentObject(authService)
+                    .presentationDetents([.medium, .large])
+                    .presentationDragIndicator(.hidden)
+                }
             }
         }
         .task {
@@ -261,7 +280,7 @@ struct MainDashboardView: View {
         )
     }
     
-    private func usageCardsView(balance: Balance, dataAssigned: Double) -> some View {
+    private func usageCardsView(balance: Balance, dataAssigned: Double, daysRemaining: Int) -> some View {
         VStack(spacing: 16) {
             // Data Usage
             UsageCard(
@@ -277,6 +296,16 @@ struct MainDashboardView: View {
             )
             .onTapGesture {
                 isDataDetailPresented = true
+            }
+            .onLongPressGesture(minimumDuration: 0.5) {
+                // Haptic feedback
+                let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+                impactFeedback.impactOccurred()
+                
+                // Show prediction popup
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    isDataPredictionPopupPresented = true
+                }
             }
             
             // Voice Usage - Check if unlimited

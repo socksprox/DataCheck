@@ -163,3 +163,43 @@
 "cdr_gesprek_uitgaand" = "Outgoing Call";
 "cdr_sms_ontvangen" = "SMS Received";
 "cdr_sms_verzonden" = "SMS Sent";
+
+// Data Usage Prediction Popup
+"data_usage_prediction" = "Data Usage Prediction";
+"current_usage" = "Current Usage";
+"predicted_usage" = "Predicted Usage";
+"days_remaining" = "Days Remaining";
+"usage_pace" = "Usage Pace";
+"daily_average" = "Daily Average";
+"predicted_total" = "Predicted Total";
+"status_on_track" = "On Track";
+"status_over_limit" = "Over Limit";
+"status_warning" = "Warning";
+"prediction_message_on_track" = "You're on track! At your current pace, you'll use about %.1f GB by the end of your billing period.";
+"prediction_message_warning" = "Slow down a bit! At your current pace, you might exceed your limit and use about %.1f GB.";
+"prediction_message_over_limit" = "You've already exceeded your data limit. Consider adjusting your usage or adding more data.";
+"gb_per_day" = "%.2f GB/day";
+"close" = "Close";
+
+// Enhanced Usage Insights
+"usage_insights" = "Usage Insights";
+"highest_usage_day" = "Highest Usage Day";
+"lowest_usage_day" = "Lowest Usage Day";
+"usage_trend" = "Usage Trend";
+"trend_increasing" = "Increasing";
+"trend_decreasing" = "Decreasing";
+"trend_stable" = "Stable";
+"outlier_detected" = "Outlier Detected";
+"unusual_usage_day" = "Unusual usage on %@";
+"unusual_days" = "unusual days";
+"weekday_average" = "Weekday Average";
+"weekend_average" = "Weekend Average";
+"loading_detailed_analysis" = "Loading detailed analysis...";
+"analysis_unavailable" = "Detailed analysis unavailable";
+"recent_days" = "Recent %d Days";
+"mb_used" = "%.0f MB used";
+"no_usage_data" = "No usage data available for analysis";
+"daily_budget" = "Daily Budget";
+"gb_per_day_remaining" = "%.2f GB/day";
+"daily_budget_message" = "You can use %.2f GB per day for the remaining %d days to reach your limit.";
+"per_day" = "per day";

@@ -163,3 +163,43 @@
 "cdr_gesprek_uitgaand" = "Gesprek uitgaand";
 "cdr_sms_ontvangen" = "SMS ontvangen";
 "cdr_sms_verzonden" = "SMS verzonden";
+
+// Data Usage Prediction Popup
+"data_usage_prediction" = "Dataverbruik Voorspelling";
+"current_usage" = "Huidig Verbruik";
+"predicted_usage" = "Voorspeld Verbruik";
+"days_remaining" = "Dagen Resterend";
+"usage_pace" = "Verbruikstempo";
+"daily_average" = "Dagelijks Gemiddelde";
+"predicted_total" = "Voorspeld Totaal";
+"status_on_track" = "Op Schema";
+"status_over_limit" = "Over Limiet";
+"status_warning" = "Waarschuwing";
+"prediction_message_on_track" = "Je bent op schema! Met je huidige tempo gebruik je ongeveer %.1f GB aan het einde van je factuurperiode.";
+"prediction_message_warning" = "Ga wat langzamer! Met je huidige tempo overschrijd je mogelijk je limiet en gebruik je ongeveer %.1f GB.";
+"prediction_message_over_limit" = "Je hebt je datalimiet al overschreden. Overweeg je verbruik aan te passen of meer data toe te voegen.";
+"gb_per_day" = "%.2f GB/dag";
+"close" = "Sluiten";
+
+// Enhanced Usage Insights
+"usage_insights" = "Verbruiksinzichten";
+"highest_usage_day" = "Hoogste Verbruiksdag";
+"lowest_usage_day" = "Laagste Verbruiksdag";
+"usage_trend" = "Verbruikstrend";
+"trend_increasing" = "Stijgend";
+"trend_decreasing" = "Dalend";
+"trend_stable" = "Stabiel";
+"outlier_detected" = "Uitbijter Gedetecteerd";
+"unusual_usage_day" = "Ongewoon verbruik op %@";
+"unusual_days" = "ongewone dagen";
+"weekday_average" = "Doordeweeks Gemiddelde";
+"weekend_average" = "Weekend Gemiddelde";
+"loading_detailed_analysis" = "Gedetailleerde analyse laden...";
+"analysis_unavailable" = "Gedetailleerde analyse niet beschikbaar";
+"recent_days" = "Afgelopen %d Dagen";
+"mb_used" = "%.0f MB gebruikt";
+"no_usage_data" = "Geen verbruiksgegevens beschikbaar voor analyse";
+"daily_budget" = "Dagelijks Budget";
+"gb_per_day_remaining" = "%.2f GB/dag";
+"daily_budget_message" = "Je kunt %.2f GB per dag gebruiken voor de resterende %d dagen om je limiet te bereiken.";
+"per_day" = "per dag";
