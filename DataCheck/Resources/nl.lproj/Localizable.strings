@@ -1,0 +1,165 @@
+/* 
+  Localizable.strings
+  DataCheck
+
+  Created by socksprox on 27.09.25.
+*/
+
+"loading_your_data" = "Gegevens laden...";
+"extra_usage" = "Extra verbruik";
+"you_are_doing_great" = "Je doet het geweldig!";
+"keep_an_eye_on_this" = "Houd dit in de gaten";
+"adjust" = "Aanpassen";
+"extra_charges_this_period" = "Extra kosten deze periode";
+"limit" = "limiet";
+"days_left" = "dagen te gaan";
+"renewing_soon" = "Verloopt binnenkort";
+"active_period" = "Actieve periode";
+"until_next_bill" = "Tot de volgende rekening";
+"data" = "Data";
+"voice" = "Bellen";
+"sms" = "Sms";
+"unlimited" = "Onbeperkt";
+"gb_used" = "%.1f GB gebruikt";
+"percent_used" = "%.0f%% gebruikt";
+"gb_total" = "%.0f GB totaal";
+"percent_left" = "%.0f%% over";
+"your_number" = "Jouw nummer";
+"ready_to_connect" = "Klaar om te verbinden";
+"netherlands" = "Nederland";
+"active" = "Actief";
+"error" = "Fout";
+"retry" = "Opnieuw proberen";
+"datacheck" = "DataCheck";
+
+// Subscription View
+"subscription" = "Abonnement";
+"loading_subscription_details" = "Abonnementsgegevens laden...";
+"wallet_balance" = "Wallet Saldo";
+"available_to_use_for_addons" = "Beschikbaar voor add-ons";
+"contract_details" = "Contract Details";
+"contract_period" = "Contract Periode";
+"clever_enable" = "Clever Ingeschakeld";
+"yes" = "Ja";
+"no" = "Nee";
+"minutes" = "Minuten";
+"phone_details" = "Telefoon Details";
+"phone_number" = "Telefoonnummer";
+"status" = "Status";
+"voicemail" = "Voicemail";
+"enabled" = "Ingeschakeld";
+"disabled" = "Uitgeschakeld";
+"sim_card_iccid" = "SIM Kaart (ICCID)";
+"puk_code" = "PUK Code";
+"available_addons" = "Beschikbare Add-ons";
+"add" = "Toevoegen";
+"active_campaigns" = "Actieve Acties";
+"price_forecast" = "Prijsvoorspelling";
+"current_plan" = "Huidig Abonnement";
+"next_bill" = "Volgende factuur";
+"from" = "Vanaf";
+"hard_suspended" = "Hard Opgeschort";
+"suspended" = "Opgeschort";
+"activating" = "Activeren";
+"inactive" = "Inactief";
+"current" = "Huidig";
+
+// Price Forecast Detail View
+"price_forecast_details" = "Prijsvoorspelling Details";
+"total_contract_cost" = "Totale Contractkosten";
+"average_monthly_cost" = "Gemiddelde Maandkosten";
+"contract_duration" = "Contract Duur";
+"total_months" = "Totaal Maanden";
+"months" = "maanden";
+"price_breakdown" = "Prijsoverzicht";
+"price_timeline" = "Prijstijdlijn";
+"per_month" = "per maand";
+"back" = "Terug";
+
+// Plan Names
+"kostenplafond" = "Mijn Abonnement";
+
+// Campaign Messages
+"actie_eerste_12_maanden_50_korting" = "Actie: Eerste 12 maanden 50% korting";
+
+// Profile View
+"my_profile" = "Mijn Profiel";
+"loading_profile" = "Profiel laden...";
+"personal_information" = "Persoonlijke Informatie";
+"full_name" = "Volledige Naam";
+"email_address" = "E-mailadres";
+"customer_id" = "Klant ID";
+"invoice_address" = "Factuuradres";
+"change" = "Wijzigen";
+"street_address" = "Straat";
+"city" = "Plaats";
+"banking_information" = "Bankinformatie";
+"iban" = "IBAN";
+"change_password" = "Wachtwoord Wijzigen";
+"change_subscription" = "Wijzigen";
+"app_settings" = "App Instellingen";
+"logout" = "Uitloggen";
+
+// Change Password View
+"change_password_title" = "Wachtwoord Wijzigen";
+"current_password" = "Huidig Wachtwoord";
+"new_password" = "Nieuw Wachtwoord";
+"confirm_password" = "Bevestig Wachtwoord";
+"save_password" = "Wachtwoord Opslaan";
+"cancel" = "Annuleren";
+"password_changed_successfully" = "Wachtwoord succesvol gewijzigd";
+"password_change_failed" = "Wachtwoord wijzigen mislukt";
+"passwords_do_not_match" = "Wachtwoorden komen niet overeen";
+"password_too_short" = "Wachtwoord moet minimaal 8 tekens lang zijn";
+"current_password_required" = "Huidig wachtwoord is vereist";
+"new_password_required" = "Nieuw wachtwoord is vereist";
+"confirm_password_required" = "Bevestig je wachtwoord";
+"changing_password" = "Wachtwoord wijzigen...";
+"password_requirements" = "Wachtwoord moet minimaal 8 tekens lang zijn";
+"ok" = "OK";
+
+// Adjust Usage Popup
+"adjust_usage_limit" = "Verbruikslimiet Aanpassen";
+"add_credit_description" = "Voeg tegoed toe aan je account om je verbruikslimiet te verhogen en serviceonderbrekingen te voorkomen.";
+"amount_to_add" = "Toe te voegen bedrag";
+"amount" = "Bedrag";
+"payment_info_title" = "Veilige Betaling";
+"payment_info_description" = "Je wordt doorgestuurd naar een veilige betaalpagina om je transactie te voltooien.";
+"add_credit" = "Tegoed Toevoegen";
+"confirm" = "Bevestigen";
+"processing" = "Verwerken...";
+"authentication_error" = "Authenticatiefout. Probeer opnieuw in te loggen.";
+"add_credit_failed" = "Tegoed toevoegen mislukt. Probeer het opnieuw.";
+
+// Modern Addon Design
+"add_to_plan" = "Toevoegen aan Abonnement";
+
+// Contact Settings
+"contact_settings" = "Contactinstellingen";
+"show_contact_names" = "Toon Contactnamen";
+"show_contact_names_description" = "Vervang telefoonnummers door contactnamen wanneer beschikbaar";
+"contacts_permission_required" = "Contacten Toestemming Vereist";
+"contacts_permission_description" = "Om contactnamen te tonen, geef toegang tot je contacten in Instellingen";
+"grant_permission" = "Toestemming Verlenen";
+"contacts_access_denied" = "Toegang tot contacten is geweigerd. Je kunt dit inschakelen in Instellingen > Privacy en Beveiliging > Contacten";
+"open_settings" = "Open Instellingen";
+
+// Data Consumption Detail View
+"data_consumption" = "Dataverbruik";
+"consumption_history" = "Verbruikshistorie";
+"type" = "Type";
+"invoice" = "Factuur";
+"show_only_out_of_bundle" = "Toon alleen met buiten bundel kosten";
+"totals" = "Totalen";
+"call_minutes" = "Belminuten";
+"duration" = "Duur";
+"location" = "Locatie";
+"other_party" = "Telefoonnummer";
+"no_data_available" = "Geen gegevens beschikbaar";
+
+// CDR Types (Consumption Detail Record Types)
+"cdr_data" = "Data";
+"cdr_gesprek_inkomend" = "Gesprek inkomend";
+"cdr_gesprek_uitgaand" = "Gesprek uitgaand";
+"cdr_sms_ontvangen" = "SMS ontvangen";
+"cdr_sms_verzonden" = "SMS verzonden";

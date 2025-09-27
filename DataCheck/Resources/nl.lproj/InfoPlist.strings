@@ -1,0 +1,8 @@
+/* 
+  InfoPlist.strings
+  DataCheck
+
+  Created by socksprox on 27.09.25.
+*/
+
+"NSContactsUsageDescription" = "Deze app gebruikt contacten om namen te tonen in plaats van telefoonnummers in je verbruiksgeschiedenis voor betere leesbaarheid.";

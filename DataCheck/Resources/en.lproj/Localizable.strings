@@ -1,0 +1,165 @@
+/* 
+  Localizable.strings
+  DataCheck
+
+  Created by socksprox on 27.09.25.
+*/
+
+"loading_your_data" = "Loading your data...";
+"extra_usage" = "Extra Usage";
+"you_are_doing_great" = "You're doing great!";
+"keep_an_eye_on_this" = "Keep an eye on this";
+"adjust" = "Adjust";
+"extra_charges_this_period" = "Extra charges this period";
+"limit" = "limit";
+"days_left" = "days left";
+"renewing_soon" = "Renewing Soon";
+"active_period" = "Active Period";
+"until_next_bill" = "Until next bill";
+"data" = "Data";
+"voice" = "Voice";
+"sms" = "SMS";
+"unlimited" = "Unlimited";
+"gb_used" = "%.1f GB used";
+"percent_used" = "%.0f%% used";
+"gb_total" = "%.0f GB total";
+"percent_left" = "%.0f%% left";
+"your_number" = "Your Number";
+"ready_to_connect" = "Ready to connect";
+"netherlands" = "Netherlands";
+"active" = "Active";
+"error" = "Error";
+"retry" = "Retry";
+"datacheck" = "DataCheck";
+
+// Subscription View
+"subscription" = "Subscription";
+"loading_subscription_details" = "Loading subscription details...";
+"wallet_balance" = "Wallet Balance";
+"available_to_use_for_addons" = "Available to use for add-ons";
+"contract_details" = "Contract Details";
+"contract_period" = "Contract Period";
+"clever_enable" = "Clever Enable";
+"yes" = "Yes";
+"no" = "No";
+"minutes" = "Minutes";
+"phone_details" = "Phone Details";
+"phone_number" = "Phone Number";
+"status" = "Status";
+"voicemail" = "Voicemail";
+"enabled" = "Enabled";
+"disabled" = "Disabled";
+"sim_card_iccid" = "SIM Card (ICCID)";
+"puk_code" = "PUK Code";
+"available_addons" = "Available Add-ons";
+"add" = "Add";
+"active_campaigns" = "Active Campaigns";
+"price_forecast" = "Price Forecast";
+"current_plan" = "Current Plan";
+"next_bill" = "Next bill";
+"from" = "From";
+"hard_suspended" = "Hard Suspended";
+"suspended" = "Suspended";
+"activating" = "Activating";
+"inactive" = "Inactive";
+"current" = "Current";
+
+// Price Forecast Detail View
+"price_forecast_details" = "Price Forecast Details";
+"total_contract_cost" = "Total Contract Cost";
+"average_monthly_cost" = "Average Monthly Cost";
+"contract_duration" = "Contract Duration";
+"total_months" = "Total Months";
+"months" = "months";
+"price_breakdown" = "Price Breakdown";
+"price_timeline" = "Price Timeline";
+"per_month" = "per month";
+"back" = "Back";
+
+// Plan Names
+"kostenplafond" = "My Subscription";
+
+// Campaign Messages
+"actie_eerste_12_maanden_50_korting" = "Promotion: First 12 months 50% discount";
+
+// Profile View
+"my_profile" = "My Profile";
+"loading_profile" = "Loading profile...";
+"personal_information" = "Personal Information";
+"full_name" = "Full Name";
+"email_address" = "Email Address";
+"customer_id" = "Customer ID";
+"invoice_address" = "Invoice Address";
+"change" = "Change";
+"street_address" = "Street Address";
+"city" = "City";
+"banking_information" = "Banking Information";
+"iban" = "IBAN";
+"change_password" = "Change Password";
+"change_subscription" = "Change";
+"app_settings" = "App Settings";
+"logout" = "Logout";
+
+// Change Password View
+"change_password_title" = "Change Password";
+"current_password" = "Current Password";
+"new_password" = "New Password";
+"confirm_password" = "Confirm Password";
+"save_password" = "Save Password";
+"cancel" = "Cancel";
+"password_changed_successfully" = "Password changed successfully";
+"password_change_failed" = "Failed to change password";
+"passwords_do_not_match" = "Passwords do not match";
+"password_too_short" = "Password must be at least 8 characters";
+"current_password_required" = "Current password is required";
+"new_password_required" = "New password is required";
+"confirm_password_required" = "Please confirm your password";
+"changing_password" = "Changing password...";
+"password_requirements" = "Password must be at least 8 characters long";
+"ok" = "OK";
+
+// Adjust Usage Popup
+"adjust_usage_limit" = "Adjust Usage Limit";
+"add_credit_description" = "Add credit to your account to increase your usage limit and avoid service interruptions.";
+"amount_to_add" = "Amount to Add";
+"amount" = "Amount";
+"payment_info_title" = "Secure Payment";
+"payment_info_description" = "You'll be redirected to a secure payment page to complete your transaction.";
+"add_credit" = "Add Credit";
+"confirm" = "Confirm";
+"processing" = "Processing...";
+"authentication_error" = "Authentication error. Please try logging in again.";
+"add_credit_failed" = "Failed to add credit. Please try again.";
+
+// Modern Addon Design
+"add_to_plan" = "Add to Plan";
+
+// Contact Settings
+"contact_settings" = "Contact Settings";
+"show_contact_names" = "Show Contact Names";
+"show_contact_names_description" = "Replace phone numbers with contact names when available";
+"contacts_permission_required" = "Contacts Permission Required";
+"contacts_permission_description" = "To show contact names, please allow access to your contacts in Settings";
+"grant_permission" = "Grant Permission";
+"contacts_access_denied" = "Contacts access was denied. You can enable it in Settings > Privacy & Security > Contacts";
+"open_settings" = "Open Settings";
+
+// Data Consumption Detail View
+"data_consumption" = "Data Consumption";
+"consumption_history" = "Consumption History";
+"type" = "Type";
+"invoice" = "Invoice";
+"show_only_out_of_bundle" = "Show only out-of-bundle costs";
+"totals" = "Totals";
+"call_minutes" = "Call Minutes";
+"duration" = "Duration";
+"location" = "Location";
+"other_party" = "Phone Number";
+"no_data_available" = "No data available";
+
+// CDR Types (Consumption Detail Record Types)
+"cdr_data" = "Data";
+"cdr_gesprek_inkomend" = "Incoming Call";
+"cdr_gesprek_uitgaand" = "Outgoing Call";
+"cdr_sms_ontvangen" = "SMS Received";
+"cdr_sms_verzonden" = "SMS Sent";
