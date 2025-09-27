@@ -32,6 +32,10 @@ struct MainDashboardView: View {
                         if let subscriptionGroup = customer.subscriptionGroups.first,
                            let msisdn = subscriptionGroup.msisdns.first {
                             usageCardsView(balance: msisdn.balance, dataAssigned: msisdn.balance.dataAssigned)
+                                .onAppear {
+                                    // Store data for widget
+                                    storeDataForWidget(balance: msisdn.balance, dataAssigned: msisdn.balance.dataAssigned, daysRemaining: subscriptionGroup.remainingBeforeBill)
+                                }
                         }
                         
                         // Phone Number Info
@@ -413,6 +417,14 @@ struct MainDashboardView: View {
                     lineWidth: 1
                 )
         )
+    }
+    
+    private func storeDataForWidget(balance: Balance, dataAssigned: Double, daysRemaining: Int) {
+        if let userDefaults = UserDefaults(suiteName: "group.shadowfly.DataCheck") {
+            userDefaults.set(balance.dataAvailable, forKey: "dataAvailable")
+            userDefaults.set(dataAssigned, forKey: "dataAssigned")
+            userDefaults.set(daysRemaining, forKey: "daysRemaining")
+        }
     }
 }
 

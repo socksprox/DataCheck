@@ -33,10 +33,11 @@ struct Provider: TimelineProvider {
         if let userDefaults = UserDefaults(suiteName: "group.shadowfly.DataCheck") {
             let dataAvailable = userDefaults.double(forKey: "dataAvailable")
             let dataAssigned = userDefaults.double(forKey: "dataAssigned")
+            let daysRemaining = userDefaults.integer(forKey: "daysRemaining")
             
             if dataAssigned > 0 {
                 let dataUsed = dataAssigned - dataAvailable
-                return SimpleEntry(date: Date(), dataUsed: dataUsed, dataTotal: dataAssigned)
+                return SimpleEntry(date: Date(), dataUsed: dataUsed, dataTotal: dataAssigned, daysRemaining: daysRemaining)
             }
         }
         
@@ -48,67 +49,99 @@ struct SimpleEntry: TimelineEntry {
     let date: Date
     let dataUsed: Double
     let dataTotal: Double
+    let daysRemaining: Int
         
     static func placeholder() -> SimpleEntry {
-        SimpleEntry(date: Date(), dataUsed: 15000, dataTotal: 20000) // 15GB of 20GB
+        SimpleEntry(date: Date(), dataUsed: 15000, dataTotal: 20000, daysRemaining: 12) // 15GB of 20GB, 12 days left
     }
 }
 
 struct DataCheckWidgetEntryView : View {
     var entry: Provider.Entry
     
-    private var percentage: Double {
+    private var dataPercentage: Double {
         guard entry.dataTotal > 0 else { return 0 }
-        return (entry.dataUsed / entry.dataTotal) * 100
+        return (entry.dataUsed / entry.dataTotal)
     }
     
     private var dataUsedInGB: Double {
         return entry.dataUsed / 1000
     }
     
-    private var dataTotalInGB: Double {
-        return entry.dataTotal / 1000
+    private var daysPercentage: Double {
+        // Assuming a 30-day billing cycle for the progress calculation
+        let totalDays = 30.0
+        let daysUsed = totalDays - Double(entry.daysRemaining)
+        return min(daysUsed / totalDays, 1.0)
     }
 
     var body: some View {
-        VStack(spacing: 12) {
-            HStack {
-                HStack(spacing: 8) {
-                    Text("📶")
-                        .font(.title3)
-                    Text("Data")
-                        .font(.headline)
-                        .fontWeight(.bold)
-                }
-                Spacer()
-                Text("\(Int(percentage))%")
-                    .font(.title2)
+        ZStack {
+            // Outer circle background (Data consumption) - Gray
+            Circle()
+                .stroke(Color(.systemGray3), lineWidth: 13.6)
+                .aspectRatio(1, contentMode: .fit)
+                .padding(2)
+            
+            // Outer circle progress (Data consumption) - Green
+            Circle()
+                .trim(from: 0, to: dataPercentage)
+                .stroke(
+                    AngularGradient(
+                        gradient: Gradient(colors: [
+                            Color(red: 0x32/255, green: 0xa6/255, blue: 0x08/255),
+                            Color(red: 0x48/255, green: 0xed/255, blue: 0x0c/255)
+                        ]),
+                        center: .center,
+                        startAngle: .degrees(-90),
+                        endAngle: .degrees(270)
+                    ),
+                    style: StrokeStyle(lineWidth: 13.6, lineCap: .round)
+                )
+                .aspectRatio(1, contentMode: .fit)
+                .padding(2)
+                .rotationEffect(.degrees(-90))
+                .animation(.easeInOut(duration: 1.0), value: dataPercentage)
+            
+            // Inner circle progress (Days remaining) - Blue
+            Circle()
+                .trim(from: 0, to: daysPercentage)
+                .stroke(
+                    AngularGradient(
+                        gradient: Gradient(colors: [
+                            Color(red: 0x0e/255, green: 0x54/255, blue: 0x8a/255),
+                            Color(red: 0x26/255, green: 0x95/255, blue: 0xeb/255)
+                        ]),
+                        center: .center,
+                        startAngle: .degrees(-90),
+                        endAngle: .degrees(270)
+                    ),
+                    style: StrokeStyle(lineWidth: 6, lineCap: .round)
+                )
+                .aspectRatio(1, contentMode: .fit)
+                .padding(12)
+                .rotationEffect(.degrees(-90))
+                .animation(.easeInOut(duration: 1.0), value: daysPercentage)
+            
+            // Center content
+            VStack(spacing: 2) {
+                // GB label (small, above the number)
+                Text("GB")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .fontWeight(.medium)
+                
+                // Data usage (big number in center)
+                Text("\(dataUsedInGB, specifier: "%.1f")")
+                    .font(.title)
                     .fontWeight(.bold)
-                    .foregroundColor(.blue)
-            }
-            
-            GeometryReader { geometry in
-                ZStack(alignment: .leading) {
-                    RoundedRectangle(cornerRadius: 6)
-                        .fill(Color(.systemGray6))
-                        .frame(height: 8)
-                    
-                    RoundedRectangle(cornerRadius: 6)
-                        .fill(LinearGradient(gradient: Gradient(colors: [.blue.opacity(0.7), .blue]), startPoint: .leading, endPoint: .trailing))
-                        .frame(width: geometry.size.width * (percentage / 100), height: 8)
-                        .animation(.easeInOut(duration: 1.0), value: percentage)
-                }
-            }
-            .frame(height: 8)
-            
-            HStack {
-                Text("\(dataUsedInGB, specifier: "%.1f") GB used")
+                    .foregroundColor(.primary)
+                
+                // Days remaining text (small, below the number)
+                Text("\(entry.daysRemaining) days")
                     .font(.caption)
                     .foregroundColor(.secondary)
-                Spacer()
-                Text("\(dataTotalInGB, specifier: "%.0f") GB total")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                    .fontWeight(.medium)
             }
         }
         .containerBackground(.fill.tertiary, for: .widget)
