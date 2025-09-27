@@ -37,7 +37,7 @@ struct SettingsView: View {
             Section(header: Text(NSLocalizedString("contact_settings", comment: ""))) {
                 VStack(alignment: .leading, spacing: 8) {
                     Toggle(NSLocalizedString("show_contact_names", comment: ""), isOn: $contactManager.showContactNames)
-                        .onChange(of: contactManager.showContactNames) { newValue in
+                        .onChange(of: contactManager.showContactNames) { _, newValue in
                             if newValue && contactManager.contactsPermissionStatus != .authorized {
                                 // Request permission when toggle is turned on
                                 Task {
