@@ -48,6 +48,19 @@ struct GraphQLRequest: Codable {
     let query: String
 }
 
+struct MsisdnGraphQLRequest: Codable {
+    let variables: [String: String]
+    let query: String
+}
+
+struct MsisdnGraphQLResponse: Codable {
+    let data: MsisdnData
+}
+
+struct MsisdnData: Codable {
+    let msisdns: [String]
+}
+
 struct CdrGraphQLRequest: Codable {
     let operationName: String
     let variables: [String: AnyCodable]
@@ -117,30 +130,29 @@ struct CustomerData: Codable {
 
 struct Customer: Codable {
     let id: String
-    let charge: Double
     let canRenew: String?
     let renewalUrl: String?
     let subscriptionGroups: [SubscriptionGroup]
     let iccidSwaps: [IccidSwap]
     
     enum CodingKeys: String, CodingKey {
-        case id, charge, canRenew, renewalUrl, subscriptionGroups, iccidSwaps
+        case id, canRenew, renewalUrl, subscriptionGroups, iccidSwaps
     }
 }
 
 struct SubscriptionGroup: Codable {
     let id: String
+    let charge: Double
     let remainingBeforeBill: Int
     let unlockingAllowed: Bool
     let contractUnlocked: Bool
     let referralCode: String?
     let nextRenewedSubscriptionDate: String?
     let msisdns: [MSISDN]
-    let koreClenMigrationInProgress: Bool
     
     enum CodingKeys: String, CodingKey {
-        case id, remainingBeforeBill, unlockingAllowed, contractUnlocked
-        case referralCode, nextRenewedSubscriptionDate, msisdns, koreClenMigrationInProgress
+        case id, charge, remainingBeforeBill, unlockingAllowed, contractUnlocked
+        case referralCode, nextRenewedSubscriptionDate, msisdns
     }
 }
 
@@ -165,6 +177,7 @@ struct Balance: Codable {
     let dataAvailable: Double
     let dataAssigned: Double
     let dataPercentage: Double
+    let dataReserved: Double?
 }
 
 struct IccidSwap: Codable {
@@ -213,7 +226,6 @@ struct DetailedSubscriptionGroup: Codable {
     let msisdns: [DetailedMSISDN]
     let availableAddOns: [AddOn]
     let temporaryAddOns: [TemporaryAddOn]
-    let koreClenMigrationInProgress: Bool
 }
 
 struct Contract: Codable {

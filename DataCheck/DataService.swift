@@ -28,22 +28,16 @@ class DataService: ObservableObject {
     @Published var isLoadingProvisionalCdrData = false
     @Published var provisionalCdrDataErrorMessage: String?
     @Published var dayAggregatedData: [DayAggregatedData]?
+    @Published var phoneNumber: String?
     
     private let baseURL = "https://mijn.50plusmobiel.nl"
     
     private let customerDataCacheKey = "customerData"
     private let subscriptionDataCacheKey = "subscriptionData"
     private let profileDataCacheKey = "profileData"
+    private let phoneNumberCacheKey = "phoneNumber"
 
-    func fetchCustomerData(accessToken: String) async {
-        // Load from cache first
-        if let cachedData: Customer = CacheManager.shared.loadData(forKey: customerDataCacheKey) {
-            self.customerData = cachedData
-        } else {
-            isLoading = true
-        }
-        errorMessage = nil
-        
+    func fetchPhoneNumber(accessToken: String) async -> String? {
         do {
             guard let url = URL(string: "\(baseURL)/api/graphql") else {
                 throw DataError.invalidURL
@@ -58,13 +52,73 @@ class DataService: ObservableObject {
             
             let graphQLQuery = """
             {
-              me {
+              msisdns
+            }
+            """
+            
+            let graphQLRequest = MsisdnGraphQLRequest(variables: [:], query: graphQLQuery)
+            request.httpBody = try JSONEncoder().encode(graphQLRequest)
+            
+            let (data, _) = try await URLSession.shared.data(for: request)
+            let response = try JSONDecoder().decode(MsisdnGraphQLResponse.self, from: data)
+            
+            if let firstNumber = response.data.msisdns.first {
+                self.phoneNumber = firstNumber
+                CacheManager.shared.saveData(firstNumber, forKey: phoneNumberCacheKey)
+                return firstNumber
+            }
+            return nil
+        } catch {
+            print("Error fetching phone number: \(error)")
+            return nil
+        }
+    }
+    
+    func fetchCustomerData(accessToken: String) async {
+        // Load from cache first
+        if let cachedData: Customer = CacheManager.shared.loadData(forKey: customerDataCacheKey) {
+            self.customerData = cachedData
+        } else {
+            isLoading = true
+        }
+        errorMessage = nil
+        
+        // Get phone number first
+        var msisdn: String?
+        if let cachedPhone: String = CacheManager.shared.loadData(forKey: phoneNumberCacheKey) {
+            msisdn = cachedPhone
+            self.phoneNumber = cachedPhone
+        } else {
+            msisdn = await fetchPhoneNumber(accessToken: accessToken)
+        }
+        
+        guard let phoneNumber = msisdn else {
+            self.errorMessage = "Failed to retrieve phone number"
+            isLoading = false
+            return
+        }
+        
+        do {
+            guard let url = URL(string: "\(baseURL)/api/graphql") else {
+                throw DataError.invalidURL
+            }
+            
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            request.setValue("application/json", forHTTPHeaderField: "content-type")
+            request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "authorization")
+            request.setValue("https://mijn.50plusmobiel.nl/", forHTTPHeaderField: "Referer")
+            request.setValue("https://mijn.50plusmobiel.nl", forHTTPHeaderField: "Origin")
+            
+            let graphQLQuery = """
+            query ($selectedMsisdn: String) {
+              me(selectedMsisdn: $selectedMsisdn) {
                 id
-                charge
                 canRenew
                 renewalUrl
                 subscriptionGroups {
                   id
+                  charge
                   remainingBeforeBill
                   unlockingAllowed
                   contractUnlocked
@@ -87,11 +141,11 @@ class DataService: ObservableObject {
                       dataAvailable
                       dataAssigned
                       dataPercentage
+                      dataReserved
                       __typename
                     }
                     __typename
                   }
-                  koreClenMigrationInProgress
                   __typename
                 }
                 iccidSwaps {
@@ -103,7 +157,7 @@ class DataService: ObservableObject {
             }
             """
             
-            let graphQLRequest = GraphQLRequest(variables: [:], query: graphQLQuery)
+            let graphQLRequest = GraphQLRequest(variables: ["selectedMsisdn": phoneNumber], query: graphQLQuery)
             request.httpBody = try JSONEncoder().encode(graphQLRequest)
             
             let (data, _) = try await URLSession.shared.data(for: request)
@@ -127,6 +181,20 @@ class DataService: ObservableObject {
         }
         subscriptionErrorMessage = nil
         
+        // Get phone number first
+        var msisdn: String?
+        if let cachedPhone: String = CacheManager.shared.loadData(forKey: phoneNumberCacheKey) {
+            msisdn = cachedPhone
+        } else {
+            msisdn = await fetchPhoneNumber(accessToken: accessToken)
+        }
+        
+        guard let phoneNumber = msisdn else {
+            self.subscriptionErrorMessage = "Failed to retrieve phone number"
+            isLoadingSubscription = false
+            return
+        }
+        
         do {
             guard let url = URL(string: "\(baseURL)/api/graphql") else {
                 throw DataError.invalidURL
@@ -140,8 +208,8 @@ class DataService: ObservableObject {
             request.setValue("https://mijn.50plusmobiel.nl", forHTTPHeaderField: "Origin")
             
             let subscriptionQuery = """
-            {
-              me {
+            query ($selectedMsisdn: String) {
+              me(selectedMsisdn: $selectedMsisdn) {
                 id
                 wallet {
                   id
@@ -248,7 +316,6 @@ class DataService: ObservableObject {
                     name
                     __typename
                   }
-                  koreClenMigrationInProgress
                   __typename
                 }
                 iccidSwaps {
@@ -260,7 +327,7 @@ class DataService: ObservableObject {
             }
             """
             
-            let graphQLRequest = GraphQLRequest(variables: [:], query: subscriptionQuery)
+            let graphQLRequest = GraphQLRequest(variables: ["selectedMsisdn": phoneNumber], query: subscriptionQuery)
             request.httpBody = try JSONEncoder().encode(graphQLRequest)
             
             let (data, _) = try await URLSession.shared.data(for: request)
@@ -283,6 +350,20 @@ class DataService: ObservableObject {
         }
         profileErrorMessage = nil
         
+        // Get phone number first
+        var msisdn: String?
+        if let cachedPhone: String = CacheManager.shared.loadData(forKey: phoneNumberCacheKey) {
+            msisdn = cachedPhone
+        } else {
+            msisdn = await fetchPhoneNumber(accessToken: accessToken)
+        }
+        
+        guard let phoneNumber = msisdn else {
+            self.profileErrorMessage = "Failed to retrieve phone number"
+            isLoadingProfile = false
+            return
+        }
+        
         do {
             guard let url = URL(string: "\(baseURL)/api/graphql") else {
                 throw DataError.invalidURL
@@ -296,8 +377,8 @@ class DataService: ObservableObject {
             request.setValue("https://mijn.50plusmobiel.nl", forHTTPHeaderField: "Origin")
             
             let profileQuery = """
-            {
-              me {
+            query ($selectedMsisdn: String) {
+              me(selectedMsisdn: $selectedMsisdn) {
                 id
                 prefix
                 firstName
@@ -317,7 +398,7 @@ class DataService: ObservableObject {
             }
             """
             
-            let graphQLRequest = GraphQLRequest(variables: [:], query: profileQuery)
+            let graphQLRequest = GraphQLRequest(variables: ["selectedMsisdn": phoneNumber], query: profileQuery)
             request.httpBody = try JSONEncoder().encode(graphQLRequest)
             
             let (data, _) = try await URLSession.shared.data(for: request)

@@ -109,11 +109,11 @@ struct MainDashboardView: View {
             if let subscriptionGroup = customer.subscriptionGroups.first,
                let msisdn = subscriptionGroup.msisdns.first {
                 
-                let usagePercentage = min(customer.charge / msisdn.thresholds.relevantCeiling, 1.0)
-                let isOverLimit = customer.charge > msisdn.thresholds.relevantCeiling
+                let usagePercentage = min(subscriptionGroup.charge / msisdn.thresholds.relevantCeiling, 1.0)
+                let isOverLimit = subscriptionGroup.charge > msisdn.thresholds.relevantCeiling
                 let statusColor: Color = {
-                    if customer.charge == 0 { return .green }
-                    if customer.charge > msisdn.thresholds.relevantCeiling * 0.8 { return .red }
+                    if subscriptionGroup.charge == 0 { return .green }
+                    if subscriptionGroup.charge > msisdn.thresholds.relevantCeiling * 0.8 { return .red }
                     return .orange
                 }()
                 
@@ -122,7 +122,7 @@ struct MainDashboardView: View {
                     HStack {
                         VStack(alignment: .leading, spacing: 4) {
                             HStack(spacing: 8) {
-                                Text(customer.charge == 0 ? "🎉" : (isOverLimit ? "⚠️" : "💰"))
+                                Text(subscriptionGroup.charge == 0 ? "🎉" : (isOverLimit ? "⚠️" : "💰"))
                                     .font(.title2)
                                 Text(NSLocalizedString("extra_usage", comment: ""))
                                     .font(.title3)
@@ -130,7 +130,7 @@ struct MainDashboardView: View {
                                     .foregroundColor(.primary)
                             }
                             
-                            Text(customer.charge == 0 ? NSLocalizedString("you_are_doing_great", comment: "") : NSLocalizedString("keep_an_eye_on_this", comment: ""))
+                            Text(subscriptionGroup.charge == 0 ? NSLocalizedString("you_are_doing_great", comment: "") : NSLocalizedString("keep_an_eye_on_this", comment: ""))
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
@@ -163,7 +163,7 @@ struct MainDashboardView: View {
                     // Simplified spending display
                     HStack {
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("€\(customer.charge, specifier: "%.2f")")
+                            Text("€\(subscriptionGroup.charge, specifier: "%.2f")")
                                 .font(.system(size: 36, weight: .bold, design: .rounded))
                                 .foregroundColor(statusColor)
                             
