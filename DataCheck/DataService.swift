@@ -782,6 +782,203 @@ class DataService: ObservableObject {
         }
     }
     
+    func fetchServiceSettings(accessToken: String) async -> ServiceSettingsCustomer? {
+        // Get phone number first
+        var msisdn: String?
+        if let cachedPhone: String = CacheManager.shared.loadData(forKey: phoneNumberCacheKey) {
+            msisdn = cachedPhone
+        } else {
+            msisdn = await fetchPhoneNumber(accessToken: accessToken)
+        }
+        
+        guard let phoneNumber = msisdn else {
+            return nil
+        }
+        
+        do {
+            guard let url = URL(string: "\(baseURL)/api/graphql") else {
+                throw DataError.invalidURL
+            }
+            
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            request.setValue("application/json", forHTTPHeaderField: "content-type")
+            request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "authorization")
+            request.setValue("https://mijn.50plusmobiel.nl/", forHTTPHeaderField: "Referer")
+            request.setValue("https://mijn.50plusmobiel.nl", forHTTPHeaderField: "Origin")
+            
+            let serviceSettingsQuery = """
+            query ($selectedMsisdn: String) {
+              me(selectedMsisdn: $selectedMsisdn) {
+                id
+                lockedAddOns
+                subscriptionGroups {
+                  id
+                  enabler
+                  nextRenewedSubscriptionDate
+                  activeSubscriptionGroupBundle {
+                    id
+                    recurringAddOns {
+                      id
+                      name
+                      priceGroup {
+                        id
+                        price
+                        __typename
+                      }
+                      active
+                      endDate
+                      __typename
+                    }
+                    __typename
+                  }
+                  msisdns {
+                    id
+                    cooldown
+                    voicemailEnabled
+                    optionalServices {
+                      id
+                      displayName
+                      enabled
+                      __typename
+                    }
+                    __typename
+                  }
+                  __typename
+                }
+                __typename
+              }
+            }
+            """
+            
+            let graphQLRequest = ServiceSettingsGraphQLRequest(variables: ["selectedMsisdn": phoneNumber], query: serviceSettingsQuery)
+            request.httpBody = try JSONEncoder().encode(graphQLRequest)
+            
+            let (data, _) = try await URLSession.shared.data(for: request)
+            let response = try JSONDecoder().decode(ServiceSettingsGraphQLResponse.self, from: data)
+            
+            return response.data.me
+        } catch {
+            print("Error fetching service settings: \(error)")
+            return nil
+        }
+    }
+    
+    func toggleOptionalService(accessToken: String, msisdnId: String, serviceId: String, enabled: Bool) async -> Bool {
+        do {
+            guard let url = URL(string: "\(baseURL)/api/graphql") else {
+                throw DataError.invalidURL
+            }
+            
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            request.setValue("application/json", forHTTPHeaderField: "content-type")
+            request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "authorization")
+            request.setValue("https://mijn.50plusmobiel.nl/", forHTTPHeaderField: "Referer")
+            request.setValue("https://mijn.50plusmobiel.nl", forHTTPHeaderField: "Origin")
+            
+            let toggleMutation = """
+            mutation toggleOptionalService($id: ID!, $serviceId: String!, $enabled: Boolean!) {
+              toggleOptionalService(id: $id, serviceId: $serviceId, enabled: $enabled)
+            }
+            """
+            
+            let variables = ToggleOptionalServiceVariables(
+                id: msisdnId,
+                serviceId: serviceId,
+                enabled: enabled
+            )
+            
+            let graphQLRequest = ToggleOptionalServiceRequest(
+                operationName: "toggleOptionalService",
+                variables: variables,
+                query: toggleMutation
+            )
+            
+            request.httpBody = try JSONEncoder().encode(graphQLRequest)
+            
+            let (data, response) = try await URLSession.shared.data(for: request)
+            
+            // Check HTTP status code
+            if let httpResponse = response as? HTTPURLResponse {
+                guard httpResponse.statusCode == 200 else {
+                    print("HTTP Error: \(httpResponse.statusCode)")
+                    return false
+                }
+            }
+            
+            // Try to decode the response
+            let toggleResponse = try JSONDecoder().decode(ToggleOptionalServiceResponse.self, from: data)
+            
+            // If response is null, assume success based on HTTP 200
+            if let result = toggleResponse.data.toggleOptionalService {
+                return result == enabled
+            }
+            return true
+            
+        } catch {
+            print("Toggle optional service error: \(error)")
+            return false
+        }
+    }
+    
+    func toggleVoicemail(accessToken: String, msisdnId: String, enabled: Bool) async -> Bool {
+        do {
+            guard let url = URL(string: "\(baseURL)/api/graphql") else {
+                throw DataError.invalidURL
+            }
+            
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            request.setValue("application/json", forHTTPHeaderField: "content-type")
+            request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "authorization")
+            request.setValue("https://mijn.50plusmobiel.nl/", forHTTPHeaderField: "Referer")
+            request.setValue("https://mijn.50plusmobiel.nl", forHTTPHeaderField: "Origin")
+            
+            let toggleMutation = """
+            mutation toggleVoicemail($id: ID!, $enabled: Boolean!) {
+              toggleVoicemail(id: $id, enabled: $enabled)
+            }
+            """
+            
+            let variables = ToggleVoicemailVariables(
+                id: msisdnId,
+                enabled: enabled
+            )
+            
+            let graphQLRequest = ToggleVoicemailRequest(
+                operationName: "toggleVoicemail",
+                variables: variables,
+                query: toggleMutation
+            )
+            
+            request.httpBody = try JSONEncoder().encode(graphQLRequest)
+            
+            let (data, response) = try await URLSession.shared.data(for: request)
+            
+            // Check HTTP status code
+            if let httpResponse = response as? HTTPURLResponse {
+                guard httpResponse.statusCode == 200 else {
+                    print("HTTP Error: \(httpResponse.statusCode)")
+                    return false
+                }
+            }
+            
+            // Try to decode the response
+            let toggleResponse = try JSONDecoder().decode(ToggleVoicemailResponse.self, from: data)
+            
+            // If response is null, assume success based on HTTP 200
+            if let result = toggleResponse.data.toggleVoicemail {
+                return result == enabled
+            }
+            return true
+            
+        } catch {
+            print("Toggle voicemail error: \(error)")
+            return false
+        }
+    }
+    
     private func shareDataWithWidget(customer: Customer) {
         // IMPORTANT: Replace "group.com.yourcompany.DataCheck" with your App Group ID
         guard let userDefaults = UserDefaults(suiteName: "group.shadowfly.DataCheck"),

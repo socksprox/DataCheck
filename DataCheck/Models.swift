@@ -427,3 +427,103 @@ struct UpdateOutsideBundleCeilingResult: Codable {
     let redirectUrl: String
     let __typename: String
 }
+
+// MARK: - Service Settings Models
+struct ServiceSettingsGraphQLRequest: Codable {
+    let variables: [String: String]
+    let query: String
+}
+
+struct ServiceSettingsGraphQLResponse: Codable {
+    let data: ServiceSettingsData
+}
+
+struct ServiceSettingsData: Codable {
+    let me: ServiceSettingsCustomer
+}
+
+struct ServiceSettingsCustomer: Codable {
+    let id: String
+    let lockedAddOns: Bool
+    let subscriptionGroups: [ServiceSettingsSubscriptionGroup]
+}
+
+struct ServiceSettingsSubscriptionGroup: Codable {
+    let id: String
+    let enabler: String?
+    let nextRenewedSubscriptionDate: String?
+    let activeSubscriptionGroupBundle: ServiceSettingsBundle?
+    let msisdns: [ServiceSettingsMSISDN]
+}
+
+struct ServiceSettingsBundle: Codable {
+    let id: String
+    let recurringAddOns: [ServiceSettingsRecurringAddOn]
+}
+
+struct ServiceSettingsRecurringAddOn: Codable {
+    let id: String
+    let name: String
+    let priceGroup: ServiceSettingsPriceGroup
+    let active: Bool
+    let endDate: String?
+}
+
+struct ServiceSettingsPriceGroup: Codable {
+    let id: String
+    let price: Double
+}
+
+struct ServiceSettingsMSISDN: Codable {
+    let id: String
+    let cooldown: Bool
+    let voicemailEnabled: Bool
+    let optionalServices: [OptionalServiceSetting]
+}
+
+struct OptionalServiceSetting: Codable {
+    let id: String
+    let displayName: String
+    let enabled: Bool
+}
+
+// MARK: - Toggle Service Models
+struct ToggleOptionalServiceRequest: Codable {
+    let operationName: String
+    let variables: ToggleOptionalServiceVariables
+    let query: String
+}
+
+struct ToggleOptionalServiceVariables: Codable {
+    let id: String
+    let serviceId: String
+    let enabled: Bool
+}
+
+struct ToggleOptionalServiceResponse: Codable {
+    let data: ToggleOptionalServiceData
+}
+
+struct ToggleOptionalServiceData: Codable {
+    let toggleOptionalService: Bool?
+}
+
+// MARK: - Toggle Voicemail Models
+struct ToggleVoicemailRequest: Codable {
+    let operationName: String
+    let variables: ToggleVoicemailVariables
+    let query: String
+}
+
+struct ToggleVoicemailVariables: Codable {
+    let id: String
+    let enabled: Bool
+}
+
+struct ToggleVoicemailResponse: Codable {
+    let data: ToggleVoicemailData
+}
+
+struct ToggleVoicemailData: Codable {
+    let toggleVoicemail: Bool?
+}

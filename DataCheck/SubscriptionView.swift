@@ -59,6 +59,9 @@ struct InfoRow: View {
 struct SubscriptionView: View {
     @ObservedObject var authService: AuthenticationService
     @ObservedObject var dataService: DataService
+    @State private var serviceSettings: ServiceSettingsCustomer?
+    @State private var isLoadingSettings = false
+    @State private var isTogglingService = false
     
     var body: some View {
         NavigationView {
@@ -86,6 +89,17 @@ struct SubscriptionView: View {
                                 phoneDetailsCard(msisdn: msisdn)
                             }
                             
+                            // Service Settings
+                            if let settings = serviceSettings,
+                               let settingsGroup = settings.subscriptionGroups.first,
+                               let settingsMsisdn = settingsGroup.msisdns.first {
+                                serviceSettingsCard(
+                                    msisdn: settingsMsisdn,
+                                    bundle: settingsGroup.activeSubscriptionGroupBundle,
+                                    lockedAddOns: settings.lockedAddOns
+                                )
+                            }
+                            
                             // Available Add-ons
                             if !subscriptionGroup.availableAddOns.isEmpty {
                                 availableAddOnsCard(addOns: subscriptionGroup.availableAddOns)
@@ -111,11 +125,13 @@ struct SubscriptionView: View {
         .task {
             if let token = authService.getAccessToken() {
                 await dataService.fetchSubscriptionData(accessToken: token)
+                await fetchServiceSettings()
             }
         }
         .refreshable {
             if let token = authService.getAccessToken() {
                 await dataService.fetchSubscriptionData(accessToken: token)
+                await fetchServiceSettings()
             }
         }
     }
@@ -354,6 +370,130 @@ struct SubscriptionView: View {
         return (forecast, "")
     }
     
+    private func serviceSettingsCard(msisdn: ServiceSettingsMSISDN, bundle: ServiceSettingsBundle?, lockedAddOns: Bool) -> some View {
+        InfoCard(title: NSLocalizedString("service_settings", comment: "")) {
+            VStack(spacing: 16) {
+                // Cost Ceiling Toggle
+                if let bundle = bundle,
+                   let costCeilingAddon = bundle.recurringAddOns.first(where: { $0.name.lowercased().contains("kostenplafond") || $0.name.lowercased().contains("cost ceiling") }) {
+                    VStack(spacing: 8) {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(NSLocalizedString("cost_ceiling", comment: ""))
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
+                                Text("€\(costCeilingAddon.priceGroup.price, specifier: "%.2f") \(NSLocalizedString("per_month", comment: ""))")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            Spacer()
+                            Toggle("", isOn: .constant(costCeilingAddon.active))
+                                .disabled(true)
+                                .labelsHidden()
+                        }
+                        if lockedAddOns {
+                            Text(NSLocalizedString("addons_locked_message", comment: ""))
+                                .font(.caption2)
+                                .foregroundColor(.orange)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                    }
+                    Divider()
+                }
+                
+                // Voicemail Toggle
+                serviceToggleRow(
+                    label: NSLocalizedString("voicemail", comment: ""),
+                    isEnabled: msisdn.voicemailEnabled,
+                    serviceId: "voicemail",
+                    msisdnId: msisdn.id
+                )
+                
+                // Optional Services
+                ForEach(msisdn.optionalServices, id: \.id) { service in
+                    Divider()
+                    serviceToggleRow(
+                        label: localizedServiceName(service.displayName),
+                        isEnabled: service.enabled,
+                        serviceId: service.id,
+                        msisdnId: msisdn.id
+                    )
+                }
+            }
+        }
+        .disabled(isTogglingService)
+        .opacity(isTogglingService ? 0.6 : 1.0)
+    }
+    
+    private func serviceToggleRow(label: String, isEnabled: Bool, serviceId: String, msisdnId: String) -> some View {
+        HStack {
+            Text(label)
+                .font(.subheadline)
+                .foregroundColor(.primary)
+            Spacer()
+            Toggle("", isOn: Binding(
+                get: { isEnabled },
+                set: { newValue in
+                    Task {
+                        await toggleService(msisdnId: msisdnId, serviceId: serviceId, enabled: newValue)
+                    }
+                }
+            ))
+            .labelsHidden()
+        }
+    }
+    
+    private func localizedServiceName(_ serviceName: String) -> String {
+        // Create a key from the service name by converting to lowercase and replacing spaces with underscores
+        let key = "service_" + serviceName.lowercased()
+            .replacingOccurrences(of: " ", with: "_")
+            .replacingOccurrences(of: "(", with: "")
+            .replacingOccurrences(of: ")", with: "")
+            .replacingOccurrences(of: ",", with: "")
+        
+        let localized = NSLocalizedString(key, comment: "")
+        
+        // If no localization exists, return the original name
+        return localized != key ? localized : serviceName
+    }
+    
+    private func fetchServiceSettings() async {
+        guard let token = authService.getAccessToken() else { return }
+        isLoadingSettings = true
+        serviceSettings = await dataService.fetchServiceSettings(accessToken: token)
+        isLoadingSettings = false
+    }
+    
+    private func toggleService(msisdnId: String, serviceId: String, enabled: Bool) async {
+        guard let token = authService.getAccessToken() else { return }
+        isTogglingService = true
+        
+        let success: Bool
+        
+        // Voicemail uses a different mutation
+        if serviceId == "voicemail" {
+            success = await dataService.toggleVoicemail(
+                accessToken: token,
+                msisdnId: msisdnId,
+                enabled: enabled
+            )
+        } else {
+            success = await dataService.toggleOptionalService(
+                accessToken: token,
+                msisdnId: msisdnId,
+                serviceId: serviceId,
+                enabled: enabled
+            )
+        }
+        
+        if success {
+            // Refresh service settings to get updated state
+            await fetchServiceSettings()
+        }
+        
+        isTogglingService = false
+    }
+    
     private func phoneDetailsCard(msisdn: DetailedMSISDN) -> some View {
         InfoCard(title: NSLocalizedString("phone_details", comment: "")) {
             VStack(spacing: 12) {
@@ -366,12 +506,6 @@ struct SubscriptionView: View {
                     label: NSLocalizedString("status", comment: ""),
                     value: getPhoneStatus(msisdn),
                     valueColor: msisdn.active ? .green : .red
-                )
-                Divider()
-                InfoRow(
-                    label: NSLocalizedString("voicemail", comment: ""),
-                    value: msisdn.voicemailEnabled ? NSLocalizedString("enabled", comment: "") : NSLocalizedString("disabled", comment: ""),
-                    valueColor: msisdn.voicemailEnabled ? .green : .red
                 )
                 Divider()
                 HStack {

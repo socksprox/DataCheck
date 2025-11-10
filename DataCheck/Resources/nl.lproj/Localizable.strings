@@ -215,3 +215,11 @@
 "gb_per_day_remaining" = "%.2f GB/dag";
 "daily_budget_message" = "Je kunt %.2f GB per dag gebruiken voor de resterende %d dagen om je limiet te bereiken.";
 "per_day" = "per dag";
+
+// Service Settings
+"service_settings" = "Service Instellingen";
+"cost_ceiling" = "Kostenplafond";
+"addons_locked_message" = "Add-ons zijn momenteel vergrendeld en kunnen niet worden gewijzigd";
+"service_erotische_diensten_0906" = "Erotische Diensten (0906)";
+"service_informatienummers_0900_0909_084_087_en_18xx_nummers" = "Informatienummers (0900, 0909, 084, 087, 18XX)";
+"service_bellen_naar_het_buitenland" = "Bellen naar het Buitenland";
