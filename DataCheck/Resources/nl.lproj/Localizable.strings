@@ -32,6 +32,18 @@
 "retry" = "Opnieuw proberen";
 "datacheck" = "DataCheck";
 
+// Data Consumption Detail View
+"list_view" = "Lijstweergave";
+"day_view" = "Dagweergave";
+"data_usage" = "Dataverbruik";
+"call_minutes" = "Belminuten";
+"sms_count" = "SMS Aantal";
+"total_charge" = "Totale Kosten";
+"gb_format" = "%.2f GB";
+"minutes_format" = "%d min";
+"sms_format" = "%d SMS";
+"charge_format" = "€%.2f";
+
 // Subscription View
 "subscription" = "Abonnement";
 "loading_subscription_details" = "Abonnementsgegevens laden...";

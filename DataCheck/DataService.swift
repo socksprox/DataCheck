@@ -24,6 +24,10 @@ class DataService: ObservableObject {
     @Published var cdrData: [CdrRecord]?
     @Published var isLoadingCdrData = false
     @Published var cdrDataErrorMessage: String?
+    @Published var provisionalCdrData: [ProvisionalCdrRecord]?
+    @Published var isLoadingProvisionalCdrData = false
+    @Published var provisionalCdrDataErrorMessage: String?
+    @Published var dayAggregatedData: [DayAggregatedData]?
     
     private let baseURL = "https://mijn.50plusmobiel.nl"
     
@@ -383,6 +387,199 @@ class DataService: ObservableObject {
         }
         
         isLoadingCdrData = false
+    }
+    
+    func fetchProvisionalCdrData(accessToken: String, subscriptionGroup: String) async {
+        isLoadingProvisionalCdrData = true
+        provisionalCdrDataErrorMessage = nil
+        
+        do {
+            guard let url = URL(string: "\(baseURL)/api/graphql") else {
+                throw DataError.invalidURL
+            }
+            
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            request.setValue("application/json", forHTTPHeaderField: "content-type")
+            request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "authorization")
+            request.setValue("https://mijn.50plusmobiel.nl/", forHTTPHeaderField: "Referer")
+            request.setValue("https://mijn.50plusmobiel.nl", forHTTPHeaderField: "Origin")
+            
+            let provisionalCdrQuery = """
+            query provisionalCdrData($subscriptionGroup: String!) {
+              provisionalCdrData(subscriptionGroup: $subscriptionGroup) {
+                startDate
+                cdrType
+                otherParty
+                duration
+                aLocation
+                aCountry
+                retailCharge
+                __typename
+              }
+            }
+            """
+            
+            let variables: [String: AnyCodable] = [
+                "subscriptionGroup": AnyCodable(subscriptionGroup)
+            ]
+            
+            let graphQLRequest = CdrGraphQLRequest(operationName: "provisionalCdrData", variables: variables, query: provisionalCdrQuery)
+            
+            let encoder = JSONEncoder()
+            let requestBody = try encoder.encode(graphQLRequest)
+            request.httpBody = requestBody
+            
+            let (data, _) = try await URLSession.shared.data(for: request)
+            let response = try JSONDecoder().decode(ProvisionalCdrDataResponse.self, from: data)
+            
+            self.provisionalCdrData = response.data.provisionalCdrData
+        } catch {
+            self.provisionalCdrDataErrorMessage = error.localizedDescription
+        }
+        
+        isLoadingProvisionalCdrData = false
+    }
+    
+    func fetchBothCdrDataTypes(accessToken: String, subscriptionGroup: String) async {
+        await withTaskGroup(of: Void.self) { group in
+            group.addTask {
+                await self.fetchCdrData(accessToken: accessToken, subscriptionGroup: subscriptionGroup)
+            }
+            group.addTask {
+                await self.fetchProvisionalCdrData(accessToken: accessToken, subscriptionGroup: subscriptionGroup)
+            }
+        }
+        
+        // After both are fetched, aggregate the data by day
+        aggregateDataByDay()
+    }
+    
+    private func aggregateDataByDay() {
+        var dayData: [String: DayAggregatedData] = [:]
+        
+        // Process historical CDR data
+        if let cdrData = cdrData {
+            for record in cdrData {
+                let dateKey = extractDateKey(from: record.startDate)
+                
+                if dayData[dateKey] == nil {
+                    dayData[dateKey] = DayAggregatedData(
+                        id: dateKey,
+                        date: dateKey,
+                        dataUsageMB: 0,
+                        callMinutes: 0,
+                        smsCount: 0,
+                        totalCharge: 0
+                    )
+                }
+                
+                var existingData = dayData[dateKey]!
+                
+                // Parse data usage
+                if record.cdrType.lowercased() == "data" {
+                    let dataMB = parseDataUsage(record.duration)
+                    existingData = DayAggregatedData(
+                        id: existingData.id,
+                        date: existingData.date,
+                        dataUsageMB: existingData.dataUsageMB + dataMB,
+                        callMinutes: existingData.callMinutes,
+                        smsCount: existingData.smsCount,
+                        totalCharge: existingData.totalCharge + record.retailCharge
+                    )
+                }
+                // Parse call minutes
+                else if record.cdrType.lowercased().contains("gesprek") {
+                    let minutes = parseCallDuration(record.duration)
+                    existingData = DayAggregatedData(
+                        id: existingData.id,
+                        date: existingData.date,
+                        dataUsageMB: existingData.dataUsageMB,
+                        callMinutes: existingData.callMinutes + minutes,
+                        smsCount: existingData.smsCount,
+                        totalCharge: existingData.totalCharge + record.retailCharge
+                    )
+                }
+                // Parse SMS
+                else if record.cdrType.lowercased().contains("sms") {
+                    existingData = DayAggregatedData(
+                        id: existingData.id,
+                        date: existingData.date,
+                        dataUsageMB: existingData.dataUsageMB,
+                        callMinutes: existingData.callMinutes,
+                        smsCount: existingData.smsCount + 1,
+                        totalCharge: existingData.totalCharge + record.retailCharge
+                    )
+                }
+                
+                dayData[dateKey] = existingData
+            }
+        }
+        
+        // Process provisional CDR data
+        if let provisionalData = provisionalCdrData {
+            for record in provisionalData {
+                let dateKey = extractDateKey(from: record.startDate)
+                
+                if dayData[dateKey] == nil {
+                    dayData[dateKey] = DayAggregatedData(
+                        id: dateKey,
+                        date: dateKey,
+                        dataUsageMB: 0,
+                        callMinutes: 0,
+                        smsCount: 0,
+                        totalCharge: 0
+                    )
+                }
+                
+                var existingData = dayData[dateKey]!
+                
+                // Parse provisional data usage
+                if record.cdrType.lowercased() == "data" {
+                    let dataMB = parseDataUsage(record.duration)
+                    existingData = DayAggregatedData(
+                        id: existingData.id,
+                        date: existingData.date,
+                        dataUsageMB: existingData.dataUsageMB + dataMB,
+                        callMinutes: existingData.callMinutes,
+                        smsCount: existingData.smsCount,
+                        totalCharge: existingData.totalCharge + record.retailCharge
+                    )
+                }
+                
+                dayData[dateKey] = existingData
+            }
+        }
+        
+        // Sort by date (most recent first)
+        self.dayAggregatedData = dayData.values.sorted { $0.date > $1.date }
+    }
+    
+    private func extractDateKey(from dateString: String) -> String {
+        // Extract date from "2025-09-28T15:41:15+0200" format to "2025-09-28"
+        let components = dateString.components(separatedBy: "T")
+        return components.first ?? dateString
+    }
+    
+    private func parseDataUsage(_ durationString: String) -> Double {
+        // Parse "150,00 MB" or "1.208,52 MB" format
+        let cleanedString = durationString.replacingOccurrences(of: " MB", with: "")
+            .replacingOccurrences(of: ".", with: "") // Remove thousand separators
+            .replacingOccurrences(of: ",", with: ".") // Convert decimal separator
+        
+        return Double(cleanedString) ?? 0.0
+    }
+    
+    private func parseCallDuration(_ durationString: String) -> Int {
+        // Parse "39:36" format to minutes
+        let components = durationString.components(separatedBy: ":")
+        guard components.count == 2,
+              let minutes = Int(components[0]),
+              let seconds = Int(components[1]) else {
+            return 0
+        }
+        
+        return minutes + (seconds > 0 ? 1 : 0) // Round up if there are seconds
     }
     
     func updatePassword(accessToken: String, currentPassword: String, newPassword: String) async -> Bool {

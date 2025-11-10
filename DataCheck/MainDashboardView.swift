@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import UIKit
 
 struct MainDashboardView: View {
     @ObservedObject var authService: AuthenticationService

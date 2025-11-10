@@ -340,6 +340,37 @@ struct CdrRecord: Codable, Identifiable, Equatable {
     let durationInBundle: String?
 }
 
+// MARK: - Provisional CDR Models
+struct ProvisionalCdrDataResponse: Codable {
+    let data: ProvisionalCdrData
+}
+
+struct ProvisionalCdrData: Codable {
+    let provisionalCdrData: [ProvisionalCdrRecord]
+}
+
+struct ProvisionalCdrRecord: Codable, Identifiable, Equatable {
+    var id: String { startDate }
+    let startDate: String
+    let cdrType: String
+    let otherParty: String
+    let duration: String
+    let aLocation: String
+    let aCountry: String?
+    let retailCharge: Double
+    let __typename: String
+}
+
+// MARK: - Day Aggregated Data Models
+struct DayAggregatedData: Identifiable, Equatable {
+    let id: String // Date string in YYYY-MM-DD format
+    let date: String
+    let dataUsageMB: Double
+    let callMinutes: Int
+    let smsCount: Int
+    let totalCharge: Double
+}
+
 // MARK: - Password Update Models
 struct UpdatePasswordRequest: Codable {
     let operationName: String

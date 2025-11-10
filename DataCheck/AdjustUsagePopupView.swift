@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import UIKit
 
 struct AdjustUsagePopupView: View {
     @ObservedObject var authService: AuthenticationService

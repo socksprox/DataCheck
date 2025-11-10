@@ -32,6 +32,18 @@
 "retry" = "Retry";
 "datacheck" = "DataCheck";
 
+// Data Consumption Detail View
+"list_view" = "List View";
+"day_view" = "Day View";
+"data_usage" = "Data Usage";
+"call_minutes" = "Call Minutes";
+"sms_count" = "SMS Count";
+"total_charge" = "Total Charge";
+"gb_format" = "%.2f GB";
+"minutes_format" = "%d min";
+"sms_format" = "%d SMS";
+"charge_format" = "€%.2f";
+
 // Subscription View
 "subscription" = "Subscription";
 "loading_subscription_details" = "Loading subscription details...";
