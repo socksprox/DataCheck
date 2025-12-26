@@ -268,7 +268,7 @@ struct DataUsagePredictionPopup: View {
         .onAppear {
             analyzeUsageData()
         }
-        .onChange(of: dataService.cdrData) { _ in
+        .onChange(of: dataService.cdrData) {
             // Re-analyze when CDR data becomes available
             if dataService.cdrData != nil {
                 analyzeUsageData()

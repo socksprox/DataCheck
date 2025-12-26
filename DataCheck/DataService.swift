@@ -111,22 +111,17 @@ class DataService: ObservableObject {
             request.setValue("https://mijn.50plusmobiel.nl", forHTTPHeaderField: "Origin")
             
             let graphQLQuery = """
-            query ($selectedMsisdn: String) {
+            query getCustomerForMsisdn($selectedMsisdn: String) {
               me(selectedMsisdn: $selectedMsisdn) {
                 id
-                canRenew
-                renewalUrl
                 subscriptionGroups {
                   id
                   charge
-                  remainingBeforeBill
-                  unlockingAllowed
-                  contractUnlocked
-                  referralCode
-                  nextRenewedSubscriptionDate
                   msisdns {
                     id
                     localizedName
+                    suspended
+                    hardSuspended
                     thresholds {
                       relevantCeiling
                       __typename
@@ -148,8 +143,37 @@ class DataService: ObservableObject {
                   }
                   __typename
                 }
-                iccidSwaps {
+                delegatedAccesses {
                   id
+                  subscriptionGroup {
+                    id
+                    charge
+                    msisdns {
+                      id
+                      localizedName
+                      suspended
+                      hardSuspended
+                      thresholds {
+                        relevantCeiling
+                        __typename
+                      }
+                      balance {
+                        voiceAvailable
+                        voiceAssigned
+                        voicePercentage
+                        smsAvailable
+                        smsAssigned
+                        smsPercentage
+                        dataAvailable
+                        dataAssigned
+                        dataPercentage
+                        dataReserved
+                        __typename
+                      }
+                      __typename
+                    }
+                    __typename
+                  }
                   __typename
                 }
                 __typename
@@ -157,16 +181,44 @@ class DataService: ObservableObject {
             }
             """
             
-            let graphQLRequest = GraphQLRequest(variables: ["selectedMsisdn": phoneNumber], query: graphQLQuery)
+            let graphQLRequest = CdrGraphQLRequest(
+                operationName: "getCustomerForMsisdn",
+                variables: ["selectedMsisdn": AnyCodable(phoneNumber)],
+                query: graphQLQuery
+            )
             request.httpBody = try JSONEncoder().encode(graphQLRequest)
             
             let (data, _) = try await URLSession.shared.data(for: request)
+            
+            // Debug: Print raw response
+            if let jsonString = String(data: data, encoding: .utf8) {
+                print("=== API Response ===")
+                print(jsonString)
+                print("===================")
+            }
+            
             let response = try JSONDecoder().decode(GraphQLResponse.self, from: data)
             
             self.customerData = response.data.me
             CacheManager.shared.saveData(response.data.me, forKey: customerDataCacheKey)
             shareDataWithWidget(customer: response.data.me)
+        } catch let DecodingError.keyNotFound(key, context) {
+            print("Decoding error: Key '\(key.stringValue)' not found")
+            print("Context: \(context.debugDescription)")
+            print("Coding path: \(context.codingPath)")
+            self.errorMessage = "Missing field: \(key.stringValue)"
+        } catch let DecodingError.typeMismatch(type, context) {
+            print("Decoding error: Type mismatch for type \(type)")
+            print("Context: \(context.debugDescription)")
+            print("Coding path: \(context.codingPath)")
+            self.errorMessage = "Type mismatch: \(type)"
+        } catch let DecodingError.valueNotFound(type, context) {
+            print("Decoding error: Value not found for type \(type)")
+            print("Context: \(context.debugDescription)")
+            print("Coding path: \(context.codingPath)")
+            self.errorMessage = "Missing value: \(type)"
         } catch {
+            print("General error: \(error.localizedDescription)")
             self.errorMessage = error.localizedDescription
         }
         
@@ -225,6 +277,7 @@ class DataService: ObservableObject {
                   isCleverEnable
                   startDate
                   endDate
+                  ownerHasLatePayments
                   activeContract {
                     startDate
                     endDate
@@ -291,6 +344,7 @@ class DataService: ObservableObject {
                       __typename
                     }
                     voicemailEnabled
+                    voicemailSeconds
                     optionalServices {
                       displayName
                       enabled
@@ -316,10 +370,115 @@ class DataService: ObservableObject {
                     name
                     __typename
                   }
+                  iccidSwaps {
+                    id
+                    __typename
+                  }
                   __typename
                 }
-                iccidSwaps {
+                delegatedAccesses {
                   id
+                  roles
+                  subscriptionGroup {
+                    id
+                    isCleverEnable
+                    startDate
+                    endDate
+                    ownerHasLatePayments
+                    ownerFirstName
+                    activeContract {
+                      startDate
+                      endDate
+                      originalEndDate
+                      __typename
+                    }
+                    nextContract {
+                      startDate
+                      endDate
+                      originalEndDate
+                      __typename
+                    }
+                    activeSubscriptionGroupBundle {
+                      id
+                      recurringAddOns {
+                        id
+                        name
+                        active
+                        __typename
+                      }
+                      details {
+                        marketingData {
+                          minutes
+                          sms
+                          data
+                          __typename
+                        }
+                        campaignRows
+                        priceForecast(recurringOnly: false)
+                        __typename
+                      }
+                      hasAvailableUpgrades
+                      __typename
+                    }
+                    nextSubscriptionGroupBundle {
+                      id
+                      startDate
+                      details {
+                        marketingData {
+                          minutes
+                          sms
+                          data
+                          __typename
+                        }
+                        __typename
+                      }
+                      __typename
+                    }
+                    msisdns {
+                      id
+                      cooldown
+                      active
+                      suspended
+                      hardSuspended
+                      activating
+                      msisdn
+                      thresholds {
+                        relevantCeiling
+                        __typename
+                      }
+                      iccid {
+                        iccid
+                        puk1
+                        __typename
+                      }
+                      voicemailEnabled
+                      optionalServices {
+                        displayName
+                        enabled
+                        __typename
+                      }
+                      __typename
+                    }
+                    availableAddOns {
+                      id
+                      name
+                      priceGroup {
+                        id
+                        price
+                        priceArrangements {
+                          description
+                          __typename
+                        }
+                        __typename
+                      }
+                      __typename
+                    }
+                    temporaryAddOns {
+                      name
+                      __typename
+                    }
+                    __typename
+                  }
                   __typename
                 }
                 __typename
@@ -331,11 +490,35 @@ class DataService: ObservableObject {
             request.httpBody = try JSONEncoder().encode(graphQLRequest)
             
             let (data, _) = try await URLSession.shared.data(for: request)
+            
+            // Debug: Print raw response
+            if let jsonString = String(data: data, encoding: .utf8) {
+                print("=== Subscription API Response ===")
+                print(jsonString)
+                print("=================================")
+            }
+            
             let response = try JSONDecoder().decode(SubscriptionGraphQLResponse.self, from: data)
             
             self.subscriptionData = response.data.me
             CacheManager.shared.saveData(response.data.me, forKey: subscriptionDataCacheKey)
+        } catch let DecodingError.keyNotFound(key, context) {
+            print("Subscription decoding error: Key '\(key.stringValue)' not found")
+            print("Context: \(context.debugDescription)")
+            print("Coding path: \(context.codingPath)")
+            self.subscriptionErrorMessage = "Missing field: \(key.stringValue)"
+        } catch let DecodingError.typeMismatch(type, context) {
+            print("Subscription decoding error: Type mismatch for type \(type)")
+            print("Context: \(context.debugDescription)")
+            print("Coding path: \(context.codingPath)")
+            self.subscriptionErrorMessage = "Type mismatch: \(type)"
+        } catch let DecodingError.valueNotFound(type, context) {
+            print("Subscription decoding error: Value not found for type \(type)")
+            print("Context: \(context.debugDescription)")
+            print("Coding path: \(context.codingPath)")
+            self.subscriptionErrorMessage = "Missing value: \(type)"
         } catch {
+            print("Subscription general error: \(error.localizedDescription)")
             self.subscriptionErrorMessage = error.localizedDescription
         }
         
@@ -986,8 +1169,8 @@ class DataService: ObservableObject {
             return
         }
         
-        userDefaults.set(balance.dataAvailable, forKey: "dataAvailable")
-        userDefaults.set(balance.dataAssigned, forKey: "dataAssigned")
+        userDefaults.set(balance.dataAvailable ?? 0, forKey: "dataAvailable")
+        userDefaults.set(balance.dataAssigned ?? 30000, forKey: "dataAssigned")
         
         // Reload the widget timeline to show the new data
         WidgetCenter.shared.reloadAllTimelines()

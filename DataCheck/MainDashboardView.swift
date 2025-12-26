@@ -31,10 +31,12 @@ struct MainDashboardView: View {
                         // Usage Cards
                         if let subscriptionGroup = customer.subscriptionGroups.first,
                            let msisdn = subscriptionGroup.msisdns.first {
-                            usageCardsView(balance: msisdn.balance, dataAssigned: msisdn.balance.dataAssigned, daysRemaining: subscriptionGroup.remainingBeforeBill)
+                            let daysRemaining = subscriptionGroup.remainingBeforeBill ?? 30
+                            let dataAssigned = msisdn.balance.dataAssigned ?? 30000
+                            usageCardsView(balance: msisdn.balance, dataAssigned: dataAssigned, daysRemaining: daysRemaining)
                                 .onAppear {
                                     // Store data for widget
-                                    storeDataForWidget(balance: msisdn.balance, dataAssigned: msisdn.balance.dataAssigned, daysRemaining: subscriptionGroup.remainingBeforeBill)
+                                    storeDataForWidget(balance: msisdn.balance, dataAssigned: dataAssigned, daysRemaining: daysRemaining)
                                 }
                         }
                         
@@ -75,10 +77,12 @@ struct MainDashboardView: View {
                 if let customer = dataService.customerData,
                    let subscriptionGroup = customer.subscriptionGroups.first,
                    let msisdn = subscriptionGroup.msisdns.first {
+                    let dataTotal = msisdn.balance.dataAssigned ?? 30000
+                    let dataAvailable = msisdn.balance.dataAvailable ?? 0
                     DataUsagePredictionPopup(
-                        dataUsed: msisdn.balance.dataAssigned - msisdn.balance.dataAvailable,
-                        dataTotal: msisdn.balance.dataAssigned,
-                        daysRemaining: subscriptionGroup.remainingBeforeBill,
+                        dataUsed: dataTotal - dataAvailable,
+                        dataTotal: dataTotal,
+                        daysRemaining: subscriptionGroup.remainingBeforeBill ?? 30,
                         totalDaysInPeriod: 30, // Assuming 30-day billing cycle
                         subscriptionGroupId: subscriptionGroup.id,
                         isPresented: $isDataPredictionPopupPresented
@@ -232,7 +236,7 @@ struct MainDashboardView: View {
                         }
                         
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("\(subscriptionGroup.remainingBeforeBill)")
+                            Text("\(subscriptionGroup.remainingBeforeBill ?? 30)")
                                 .font(.title2)
                                 .fontWeight(.bold)
                                 .foregroundColor(.primary)
@@ -248,14 +252,15 @@ struct MainDashboardView: View {
                     // Status indicator
                     VStack(alignment: .trailing, spacing: 4) {
                         HStack(spacing: 6) {
+                            let daysLeft = subscriptionGroup.remainingBeforeBill ?? 30
                             Circle()
-                                .fill(subscriptionGroup.remainingBeforeBill <= 7 ? .orange : .green)
+                                .fill(daysLeft <= 7 ? .orange : .green)
                                 .frame(width: 8, height: 8)
                             
-                            Text(subscriptionGroup.remainingBeforeBill <= 7 ? NSLocalizedString("renewing_soon", comment: "") : NSLocalizedString("active_period", comment: ""))
+                            Text(daysLeft <= 7 ? NSLocalizedString("renewing_soon", comment: "") : NSLocalizedString("active_period", comment: ""))
                                 .font(.caption)
                                 .fontWeight(.medium)
-                                .foregroundColor(subscriptionGroup.remainingBeforeBill <= 7 ? .orange : .green)
+                                .foregroundColor(daysLeft <= 7 ? .orange : .green)
                         }
                         
                         Text(NSLocalizedString("until_next_bill", comment: ""))
@@ -282,13 +287,16 @@ struct MainDashboardView: View {
     private func usageCardsView(balance: Balance, dataAssigned: Double, daysRemaining: Int) -> some View {
         VStack(spacing: 16) {
             // Data Usage
+            let dataAvailable = balance.dataAvailable ?? 0
+            let dataTotal = balance.dataAssigned ?? dataAssigned
+            let dataPercentage = balance.dataPercentage ?? 0
             UsageCard(
                 title: NSLocalizedString("data", comment: ""),
                 icon: "wifi",
-                used: dataAssigned - balance.dataAvailable,
-                total: dataAssigned,
+                used: dataTotal - dataAvailable,
+                total: dataTotal,
                 unit: "MB",
-                percentage: Double(100 - balance.dataPercentage),
+                percentage: Double(100 - dataPercentage),
                 color: .blue,
                 isUnlimited: false, // Data is never unlimited in this context
                 isClickable: true
@@ -308,28 +316,30 @@ struct MainDashboardView: View {
             }
             
             // Voice Usage - Check if unlimited
+            let voicePercentage = balance.voicePercentage ?? 100
             UsageCard(
                 title: NSLocalizedString("voice", comment: ""),
                 icon: "phone.fill",
                 used: 0,
                 total: 100,
                 unit: "%",
-                percentage: Double(100 - balance.voicePercentage),
+                percentage: Double(100 - voicePercentage),
                 color: .green,
-                isUnlimited: balance.voiceAvailable == nil && balance.voiceAssigned == nil && balance.voicePercentage == 100,
+                isUnlimited: balance.voiceAvailable == nil && balance.voiceAssigned == nil && voicePercentage == 100,
                 isClickable: false
             )
             
             // SMS Usage - Check if unlimited
+            let smsPercentage = balance.smsPercentage ?? 100
             UsageCard(
                 title: NSLocalizedString("sms", comment: ""),
                 icon: "message.fill",
                 used: 0,
                 total: 100,
                 unit: "%",
-                percentage: Double(100 - balance.smsPercentage),
+                percentage: Double(100 - smsPercentage),
                 color: .purple,
-                isUnlimited: balance.smsAvailable == nil && balance.smsAssigned == nil && balance.smsPercentage == 100,
+                isUnlimited: balance.smsAvailable == nil && balance.smsAssigned == nil && smsPercentage == 100,
                 isClickable: false
             )
         }
@@ -449,8 +459,8 @@ struct MainDashboardView: View {
     
     private func storeDataForWidget(balance: Balance, dataAssigned: Double, daysRemaining: Int) {
         if let userDefaults = UserDefaults(suiteName: "group.shadowfly.DataCheck") {
-            userDefaults.set(balance.dataAvailable, forKey: "dataAvailable")
-            userDefaults.set(dataAssigned, forKey: "dataAssigned")
+            userDefaults.set(balance.dataAvailable ?? 0, forKey: "dataAvailable")
+            userDefaults.set(balance.dataAssigned ?? dataAssigned, forKey: "dataAssigned")
             userDefaults.set(daysRemaining, forKey: "daysRemaining")
         }
     }

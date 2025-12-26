@@ -133,19 +133,20 @@ struct Customer: Codable {
     let canRenew: String?
     let renewalUrl: String?
     let subscriptionGroups: [SubscriptionGroup]
-    let iccidSwaps: [IccidSwap]
+    let delegatedAccesses: [DelegatedAccess]
+    let iccidSwaps: [IccidSwap]?
     
     enum CodingKeys: String, CodingKey {
-        case id, canRenew, renewalUrl, subscriptionGroups, iccidSwaps
+        case id, canRenew, renewalUrl, subscriptionGroups, delegatedAccesses, iccidSwaps
     }
 }
 
 struct SubscriptionGroup: Codable {
     let id: String
     let charge: Double
-    let remainingBeforeBill: Int
-    let unlockingAllowed: Bool
-    let contractUnlocked: Bool
+    let remainingBeforeBill: Int?
+    let unlockingAllowed: Bool?
+    let contractUnlocked: Bool?
     let referralCode: String?
     let nextRenewedSubscriptionDate: String?
     let msisdns: [MSISDN]
@@ -159,6 +160,8 @@ struct SubscriptionGroup: Codable {
 struct MSISDN: Codable {
     let id: String
     let localizedName: String
+    let suspended: Bool
+    let hardSuspended: Bool
     let thresholds: Threshold
     let balance: Balance
 }
@@ -170,18 +173,29 @@ struct Threshold: Codable {
 struct Balance: Codable {
     let voiceAvailable: Double?
     let voiceAssigned: Double?
-    let voicePercentage: Double
+    let voicePercentage: Double?
     let smsAvailable: Double?
     let smsAssigned: Double?
-    let smsPercentage: Double
-    let dataAvailable: Double
-    let dataAssigned: Double
-    let dataPercentage: Double
+    let smsPercentage: Double?
+    let dataAvailable: Double?
+    let dataAssigned: Double?
+    let dataPercentage: Double?
     let dataReserved: Double?
 }
 
 struct IccidSwap: Codable {
     let id: String
+}
+
+struct DelegatedAccess: Codable {
+    let id: String
+    let subscriptionGroup: SubscriptionGroup
+}
+
+struct DetailedDelegatedAccess: Codable {
+    let id: String
+    let roles: [String]
+    let subscriptionGroup: DetailedSubscriptionGroup
 }
 
 // MARK: - Subscription Models
@@ -201,10 +215,11 @@ struct SubscriptionCustomer: Codable {
     let maxLatePaymentDays: Int
     let latePayments: [Int]
     let subscriptionGroups: [DetailedSubscriptionGroup]
-    let iccidSwaps: [IccidSwap]
+    let delegatedAccesses: [DetailedDelegatedAccess]
+    let iccidSwaps: [IccidSwap]?
     
     enum CodingKeys: String, CodingKey {
-        case id, wallet, allowAddOns, invoicePeriods, latePayments, subscriptionGroups, iccidSwaps
+        case id, wallet, allowAddOns, invoicePeriods, latePayments, subscriptionGroups, delegatedAccesses, iccidSwaps
         case maxLatePaymentDays = "MAX_LATE_PAYMENT_DAYS"
     }
 }
@@ -219,6 +234,8 @@ struct DetailedSubscriptionGroup: Codable {
     let isCleverEnable: Bool
     let startDate: String
     let endDate: String
+    let ownerHasLatePayments: Bool?
+    let ownerFirstName: String?
     let activeContract: Contract?
     let nextContract: Contract?
     let activeSubscriptionGroupBundle: SubscriptionGroupBundle?
@@ -226,6 +243,7 @@ struct DetailedSubscriptionGroup: Codable {
     let msisdns: [DetailedMSISDN]
     let availableAddOns: [AddOn]
     let temporaryAddOns: [TemporaryAddOn]
+    let iccidSwaps: [IccidSwap]?
 }
 
 struct Contract: Codable {
@@ -271,6 +289,7 @@ struct DetailedMSISDN: Codable {
     let thresholds: Threshold
     let iccid: ICCID
     let voicemailEnabled: Bool
+    let voicemailSeconds: Int?
     let optionalServices: [OptionalService]
 }
 
